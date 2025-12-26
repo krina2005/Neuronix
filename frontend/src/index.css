@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@500;700;900&display=swap');
+@import "tailwindcss";
+
+/* -------------------- THEME TOKENS (Tailwind v4) -------------------- */
+@theme {
+  --color-cyber-dark: #0a0e27;
+  --color-cyber-darker: #060817;
+  --color-cyber-blue: #00d4ff;
+  --color-cyber-purple: #9333ea;
+  --color-cyber-pink: #ec4899;
+  --color-cyber-green: #10b981;
+  --color-cyber-yellow: #fbbf24;
+  --color-cyber-red: #ef4444;
+
+  --font-display: "Orbitron", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+/* -------------------- BASE RESET -------------------- */
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: radial-gradient(
+      circle at top,
+      #0f1738 0%,
+      var(--color-cyber-darker) 60%
+    );
+    color: white;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: 0.04em;
+  }
+}
+
+/* -------------------- COMPONENT UTILITIES -------------------- */
+@layer utilities {
+  /* Glassmorphism */
+  .glass-effect {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.08),
+      rgba(255, 255, 255, 0.02)
+    );
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 20px 40px rgba(0, 0, 0, 0.6);
+  }
+
+  /* Gradient Text */
+  .text-gradient {
+    background: linear-gradient(
+      135deg,
+      var(--color-cyber-blue),
+      var(--color-cyber-purple),
+      var(--color-cyber-pink)
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  /* Glow Border */
+  .glow-border {
+    position: relative;
+  }
+
+  .glow-border::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      var(--color-cyber-blue),
+      var(--color-cyber-purple),
+      var(--color-cyber-pink)
+    );
+    filter: blur(10px);
+    opacity: 0.7;
+    z-index: -1;
+  }
+
+  /* Neon Glow */
+  .neon-glow {
+    box-shadow:
+      0 0 10px rgba(0, 212, 255, 0.6),
+      0 0 25px rgba(147, 51, 234, 0.4);
+  }
+
+  /* Scrollbar */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    scrollbar-width: none;
+  }
+}
+
+/* -------------------- ANIMATIONS -------------------- */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-18px);
+  }
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 30px rgba(147, 51, 234, 0.7);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 2.5s ease-in-out infinite alternate;
+}
