@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import axios from "axios";
+// import axios from "axios";
+import api from "../api";
 import {
   // Brain,
   // Cpu,
@@ -186,31 +187,25 @@ const Dashboard: React.FC = () => {
 
   /* -------------------- API -------------------- */
 
-  const saveStats = async (statsData: Stats): Promise<void> => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.post("/api/stats", statsData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-    } catch (error) {
-      console.error("Error saving stats:", error);
-    }
-  };
+const saveStats = async (statsData: Stats): Promise<void> => {
+  try {
+    await api.post("/stats", statsData);
+  } catch (error) {
+    console.error("Error saving stats:", error);
+  }
+};
 
-  const loadStats = async (): Promise<void> => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get("/api/stats", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.data) {
-        setStats(response.data);
-      }
-    } catch (error) {
-      console.error("Error loading stats:", error);
+const loadStats = async (): Promise<void> => {
+  try {
+    const response = await api.get("/stats");
+    if (response.data) {
+      setStats(response.data);
     }
-  };
+  } catch (error) {
+    console.log("No stats found yet");
+  }
+};
+
 
   useEffect(() => {
     loadStats();

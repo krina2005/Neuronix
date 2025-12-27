@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
-import axios, { AxiosError } from "axios";
+// import axios, { AxiosError } from "axios";
+import api from "../api";
+import { AxiosError } from "axios";
 import {
   Brain,
   Mail,
@@ -60,7 +62,7 @@ const Signup: React.FC = () => {
     }
 
     try {
-      const response = await axios.post("/api/auth/signup", {
+      const response = await api.post("/auth/signup", {
         name: formData.name,
         email: formData.email,
         password: formData.password,

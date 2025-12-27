@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
-import axios, { AxiosError } from "axios";
+// import axios, { AxiosError } from "axios";
 import { Brain, Mail, Lock, LogIn, AlertCircle } from "lucide-react";
 import Navbar from "../components/Navbar";
+import api from "../api";
+import { AxiosError } from "axios";
 
 interface LoginFormData {
   email: string;
@@ -37,7 +39,8 @@ const Login: React.FC = () => {
     setError("");
 
     try {
-      const response = await axios.post("/api/auth/login", formData);
+      // const response = await axios.post("/api/auth/login", formData);
+      const response = await api.post("/auth/login", formData);
 
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("userId", response.data.userId);
