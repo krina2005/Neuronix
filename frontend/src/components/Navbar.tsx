@@ -1,6 +1,12 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Brain, LogOut, Home, LayoutDashboard } from "lucide-react";
+import {
+  Brain,
+  LogOut,
+  Home,
+  LayoutDashboard,
+  ArrowLeft,
+} from "lucide-react";
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -16,6 +22,10 @@ const Navbar: React.FC = () => {
     navigate("/login");
   };
 
+  const handleBack = (): void => {
+    navigate("/"); // Go back to Home
+  };
+
   return (
     <motion.nav
       initial={{ y: -100 }}
@@ -24,16 +34,33 @@ const Navbar: React.FC = () => {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center space-x-3 group">
-            <div className="relative">
-              <Brain className="w-8 h-8 text-cyber-blue group-hover:text-cyber-purple transition-colors" />
-              <div className="absolute inset-0 bg-cyber-blue/20 blur-xl group-hover:bg-cyber-purple/20 transition-colors" />
-            </div>
-            <span className="text-xl font-bold text-gradient">
-              NeuroNix
-            </span>
-          </Link>
+          {/* LEFT SECTION */}
+          <div className="flex items-center space-x-4">
+            {/* Back Button - Only on Dashboard */}
+            {location.pathname === "/dashboard" && (
+              <motion.button
+                whileHover={{ scale: 1.05, x: -2 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleBack}
+                className="flex items-center px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 transition-all"
+                title="Back to Home"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </motion.button>
+            )}
 
+            <Link to="/" className="flex items-center space-x-3 group">
+              <div className="relative">
+                <Brain className="w-8 h-8 text-cyber-blue group-hover:text-cyber-purple transition-colors" />
+                <div className="absolute inset-0 bg-cyber-blue/20 blur-xl group-hover:bg-cyber-purple/20 transition-colors" />
+              </div>
+              <span className="text-xl font-bold text-gradient">
+                NeuroNix
+              </span>
+            </Link>
+          </div>
+
+          {/* RIGHT SECTION */}
           <div className="flex items-center space-x-6">
             {token ? (
               <>
