@@ -200,7 +200,6 @@ const Landing: React.FC = () => {
       </div>
 
       {/* Footer */}
-      {/* Footer */}
       <footer className="relative z-10 border-t border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-10 text-center">
           {/* Social Media Icons */}
