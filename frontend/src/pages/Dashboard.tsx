@@ -47,15 +47,15 @@ const Dashboard: React.FC = () => {
     sleepHours: 7,
     studyHours: 4,
     coffeeIntake: 2,
-    stressLevel: 5,
+    stressLevel: 3,
   });
 
   const [stats, setStats] = useState<Stats>({
-    focusLevel: 67,
-    logicPower: 78,
-    bugCount: 34,
-    coffeeDependency: 40,
-    brainRamUsage: 2.5,
+    focusLevel: 95,
+    logicPower: 85,
+    bugCount: 8,
+    coffeeDependency: 25,
+    brainRamUsage: 1.8,
   });
 
   const [errorLogs, setErrorLogs] = useState<ErrorLogItem[]>([
@@ -68,101 +68,221 @@ const Dashboard: React.FC = () => {
 
   const [loading, setLoading] = useState<boolean>(false);
 
-  /* -------------------- IMPROVED CALCULATIONS (Real-World Logic) -------------------- */
+  /* -------------------- HELPER FUNCTIONS FOR LABELS -------------------- */
+
+  const getSleepLabel = (hours: number): string => {
+    if (hours >= 7 && hours <= 8) return "⭐ Optimal";
+    if (hours >= 6 && hours < 7) return "🟡 Okay";
+    if (hours < 6) return "🔴 Critical";
+    if (hours > 9) return "🟠 Oversleep";
+    return "🟢 Good";
+  };
+
+  const getStudyLabel = (hours: number): string => {
+    if (hours === 0) return "💤 Idle";
+    if (hours >= 2 && hours < 4) return "🟢 Learning Mode";
+    if (hours >= 4 && hours <= 6) return "⭐ Optimal Learning";
+    if (hours > 6 && hours <= 8) return "🟡 Heavy Load";
+    if (hours > 8) return "🔴 Burnout Risk";
+    return "🟢 Light";
+  };
+
+  const getStressLabel = (level: number): string => {
+    if (level >= 0 && level <= 1) return "😴 Too Relaxed";
+    if (level >= 2 && level <= 4) return "⭐ Optimal Pressure";
+    if (level >= 5 && level <= 6) return "🟡 Moderate Stress";
+    if (level >= 7) return "🔴 High Stress";
+    return "🟢 Good";
+  };
+
+  /* -------------------- CALCULATIONS WITH YOUR EXACT LOGIC -------------------- */
 
   const calculateStats = (): void => {
     setLoading(true);
 
+    // ========================================
     // FOCUS LEVEL (0-100)
-    // Based on: Sleep quality, stress management, coffee boost, and study fatigue
-    let focusLevel = 50; // Base focus
+    // MOST IMPORTANT: SLEEP
+    // ========================================
+    
+    let focusLevel = 60; // Base starting point
 
-    // Sleep impact (optimal: 7-8 hours)
+    // 🛌 SLEEP (MOST IMPORTANT FACTOR)
     if (inputs.sleepHours >= 7 && inputs.sleepHours <= 8) {
-      focusLevel += 30; // Optimal sleep
+      focusLevel += 45; // ⭐ BEST FOCUS - Optimal sleep
     } else if (inputs.sleepHours >= 6 && inputs.sleepHours < 7) {
-      focusLevel += 20; // Good sleep
-    } else if (inputs.sleepHours >= 5 && inputs.sleepHours < 6) {
-      focusLevel += 10; // Acceptable sleep
-    } else if (inputs.sleepHours < 5) {
-      focusLevel -= 20; // Poor sleep
+      focusLevel += 30; // 🟡 Okay - Acceptable but not peak
+    } else if (inputs.sleepHours < 6) {
+      focusLevel += 10 - (6 - inputs.sleepHours) * 8; // 🔴 Critical - Brain fog
     } else if (inputs.sleepHours > 9) {
-      focusLevel += 10; // Oversleeping reduces focus
-    }
-
-    // Stress impact (lower is better)
-    focusLevel -= inputs.stressLevel * 3;
-
-    // Coffee boost (diminishing returns after 3 cups)
-    if (inputs.coffeeIntake <= 3) {
-      focusLevel += inputs.coffeeIntake * 5;
+      focusLevel += 20; // 🟠 Oversleep - Low alertness, laziness
     } else {
-      focusLevel += 15 - (inputs.coffeeIntake - 3) * 2; // Jitters reduce focus
+      focusLevel += 35; // Between 8-9 hours
     }
 
-    // Study fatigue (too much studying reduces focus)
-    if (inputs.studyHours > 8) {
-      focusLevel -= (inputs.studyHours - 8) * 3;
+    // 😌 STRESS (Healthy stress 2-4, Zero = laziness, High = panic)
+    if (inputs.stressLevel >= 2 && inputs.stressLevel <= 4) {
+      focusLevel += 10; // ⭐ Best focus - Optimal pressure, motivated
+    } else if (inputs.stressLevel === 0 || inputs.stressLevel === 1) {
+      focusLevel -= 15; // 😴 Too relaxed - Laziness, no motivation
+    } else if (inputs.stressLevel >= 5 && inputs.stressLevel <= 6) {
+      focusLevel -= 10; // 🟡 Acceptable - Exam pressure
+    } else if (inputs.stressLevel >= 7) {
+      focusLevel -= (inputs.stressLevel - 6) * 12; // 🔴 Bad - Panic, mistakes, bad memory
+    }
+
+    // ☕ COFFEE/TEA (Helps focus only when sleep is good)
+    if (inputs.sleepHours >= 6) {
+      // Coffee helps only with good sleep
+      if (inputs.coffeeIntake >= 1 && inputs.coffeeIntake <= 2) {
+        focusLevel += 10; // ✅ Ideal - Boosts focus
+      } else if (inputs.coffeeIntake === 3) {
+        focusLevel += 5; // 🟡 Acceptable
+      } else if (inputs.coffeeIntake > 3) {
+        focusLevel -= (inputs.coffeeIntake - 3) * 5; // 🔴 Too much - Anxiety, jittery
+      }
+    } else {
+      // Poor sleep - coffee doesn't help much
+      if (inputs.coffeeIntake > 3) {
+        focusLevel -= (inputs.coffeeIntake - 3) * 3; // Makes it worse
+      }
+    }
+
+    // 📚 STUDY HOURS (Brain works in chunks, not marathons)
+    if (inputs.studyHours >= 4 && inputs.studyHours <= 6) {
+      focusLevel += 5; // ⭐ Optimal learning
+    } else if (inputs.studyHours >= 2 && inputs.studyHours < 4) {
+      focusLevel += 0; // 🟢 Light learning - No impact
+    } else if (inputs.studyHours > 6 && inputs.studyHours <= 8) {
+      focusLevel -= 5; // 🟡 Heavy load - Needs breaks
+    } else if (inputs.studyHours > 8 && inputs.studyHours <= 10) {
+      focusLevel -= 15; // 🔴 Burnout risk - Focus drops
+    } else if (inputs.studyHours > 10) {
+      focusLevel -= 25; // 🔴 Dangerous - Focus drops sharply
     }
 
     focusLevel = Math.max(0, Math.min(100, focusLevel));
 
+    // ========================================
     // LOGIC POWER (0-100)
-    // Based on: Study hours, sleep quality, and mental state
+    // Problem-solving capability
+    // ========================================
+    
     let logicPower = 40; // Base logic
 
-    // Study hours (optimal: 4-8 hours)
-    if (inputs.studyHours >= 4 && inputs.studyHours <= 8) {
-      logicPower += inputs.studyHours * 6;
+    // Study hours impact
+    if (inputs.studyHours >= 4 && inputs.studyHours <= 6) {
+      logicPower += 40; // ⭐ Optimal learning
+    } else if (inputs.studyHours >= 2 && inputs.studyHours < 4) {
+      logicPower += 25; // 🟢 Learning mode
+    } else if (inputs.studyHours > 6 && inputs.studyHours <= 8) {
+      logicPower += 30; // 🟡 Heavy load
     } else if (inputs.studyHours > 8) {
-      logicPower += 48 - (inputs.studyHours - 8) * 4; // Diminishing returns
+      logicPower += 20 - (inputs.studyHours - 8) * 5; // 🔴 Burnout
+    } else if (inputs.studyHours === 0) {
+      logicPower += 0; // 💤 Idle
     } else {
-      logicPower += inputs.studyHours * 5;
+      logicPower += inputs.studyHours * 8; // < 2 hours
     }
 
-    // Sleep quality bonus
+    // Sleep quality
     if (inputs.sleepHours >= 7 && inputs.sleepHours <= 8) {
-      logicPower += 20;
+      logicPower += 20; // ⭐ Optimal
+    } else if (inputs.sleepHours >= 6 && inputs.sleepHours < 7) {
+      logicPower += 10; // 🟡 Okay
     } else if (inputs.sleepHours < 6) {
-      logicPower -= 15;
+      logicPower -= 20; // 🔴 Critical
     }
 
-    // Stress penalty
-    logicPower -= inputs.stressLevel * 2;
+    // Stress impact
+    if (inputs.stressLevel >= 2 && inputs.stressLevel <= 4) {
+      logicPower += 5; // ⭐ Optimal pressure
+    } else if (inputs.stressLevel >= 7) {
+      logicPower -= (inputs.stressLevel - 6) * 8; // 🔴 High stress
+    }
 
     logicPower = Math.max(0, Math.min(100, logicPower));
 
+    // ========================================
     // BUG COUNT
-    // More bugs with: High stress, low sleep, too much studying
-    let bugCount = 5; // Base bugs
-
-    bugCount += inputs.stressLevel * 3;
-    bugCount += Math.max(0, 7 - inputs.sleepHours) * 4;
+    // More bugs with: High stress, bad sleep, excessive study
+    // ========================================
     
-    if (inputs.studyHours > 10) {
-      bugCount += (inputs.studyHours - 10) * 3; // Mental fatigue
+    let bugCount = 0;
+
+    // Sleep deprivation causes bugs
+    if (inputs.sleepHours < 6) {
+      bugCount += (6 - inputs.sleepHours) * 8; // 🔴 Brain fog, mistakes
+    } else if (inputs.sleepHours > 9) {
+      bugCount += 5; // 🟠 Oversleep - Low alertness
     }
 
-    if (inputs.coffeeIntake > 5) {
-      bugCount += (inputs.coffeeIntake - 5) * 2; // Jitters cause mistakes
+    // Stress causes mistakes
+    if (inputs.stressLevel >= 7) {
+      bugCount += (inputs.stressLevel - 6) * 6; // 🔴 Panic, bad memory
+    } else if (inputs.stressLevel >= 5) {
+      bugCount += (inputs.stressLevel - 4) * 3; // 🟡 Exam pressure
+    } else if (inputs.stressLevel <= 1) {
+      bugCount += 5; // 😴 Too relaxed - Careless mistakes
+    }
+
+    // Excessive study causes mental fatigue bugs
+    if (inputs.studyHours > 8) {
+      bugCount += (inputs.studyHours - 8) * 4; // 🔴 Burnout
+    }
+
+    // Excessive coffee causes jittery mistakes
+    if (inputs.coffeeIntake > 3) {
+      bugCount += (inputs.coffeeIntake - 3) * 3; // 🔴 Anxiety, jittery
     }
 
     bugCount = Math.round(Math.max(0, bugCount));
 
+    // ========================================
     // COFFEE DEPENDENCY (0-100%)
-    // Increases with daily coffee intake
+    // ========================================
+    
     const coffeeDependency = Math.min(100, inputs.coffeeIntake * 12.5);
 
+    // ========================================
     // BRAIN RAM USAGE (0-4 GB)
-    // Based on: Study hours, stress, multitasking
-    let brainRamUsage = 0.5; // Base usage
+    // Depends on: Study (MOST), Stress (MEDIUM), Sleep & Coffee (LITTLE)
+    // ========================================
+    
+    let brainRamUsage = 0.3; // Base idle usage
 
-    brainRamUsage += (inputs.studyHours / 16) * 2; // Study load
-    brainRamUsage += (inputs.stressLevel / 10) * 1; // Stress load
-    brainRamUsage += (inputs.coffeeIntake / 8) * 0.5; // Coffee jitters
+    // 📚 STUDY HOURS (MAIN FACTOR)
+    if (inputs.studyHours === 0) {
+      brainRamUsage += 0; // 💤 Idle
+    } else if (inputs.studyHours >= 2 && inputs.studyHours < 4) {
+      brainRamUsage += 0.8; // 🟢 Learning mode
+    } else if (inputs.studyHours >= 4 && inputs.studyHours <= 6) {
+      brainRamUsage += 1.5; // ⭐ Optimal learning
+    } else if (inputs.studyHours > 6 && inputs.studyHours <= 8) {
+      brainRamUsage += 2.2; // 🟡 Heavy load
+    } else if (inputs.studyHours > 8) {
+      brainRamUsage += 2.8 + (inputs.studyHours - 8) * 0.2; // 🔴 Burnout risk
+    } else {
+      brainRamUsage += inputs.studyHours * 0.4; // < 2 hours
+    }
 
+    // 😌 STRESS (MEDIUM IMPACT)
+    if (inputs.stressLevel >= 7) {
+      brainRamUsage += (inputs.stressLevel - 6) * 0.3; // 🔴 High stress adds load
+    } else if (inputs.stressLevel >= 5) {
+      brainRamUsage += 0.3; // 🟡 Moderate stress
+    } else if (inputs.stressLevel >= 2 && inputs.stressLevel <= 4) {
+      brainRamUsage += 0.1; // ⭐ Optimal pressure - Minimal load
+    }
+
+    // 🛌 SLEEP (LITTLE IMPACT)
     if (inputs.sleepHours < 6) {
-      brainRamUsage += 0.5; // Sleep deprivation increases mental load
+      brainRamUsage += 0.3; // 🔴 Sleep deprivation increases mental load
+    }
+
+    // ☕ COFFEE (LITTLE IMPACT)
+    if (inputs.coffeeIntake > 4) {
+      brainRamUsage += 0.2; // 🔴 Jitters add processing overhead
     }
 
     brainRamUsage = Math.min(4, brainRamUsage);
@@ -175,118 +295,186 @@ const Dashboard: React.FC = () => {
       brainRamUsage: parseFloat(brainRamUsage.toFixed(1)),
     };
 
+    // ========================================
     // GENERATE CONTEXTUAL ERROR LOGS
+    // ========================================
+    
     const newLogs: ErrorLogItem[] = [];
 
-    if (newStats.focusLevel < 40) {
-      newLogs.push({
-        type: "error",
-        message: "CRITICAL: Focus level critically low",
-        details: "Immediate rest recommended to restore cognitive function",
-      });
-    } else if (newStats.focusLevel < 60) {
-      newLogs.push({
-        type: "warning",
-        message: "WARNING: Focus level below optimal",
-        details: "Consider taking a short break or adjusting inputs",
-      });
-    }
-
-    if (newStats.brainRamUsage > 3.5) {
-      newLogs.push({
-        type: "error",
-        message: "ERROR: Brain RAM overload",
-        details: "Mental capacity exceeded - reduce workload immediately",
-      });
-    } else if (newStats.brainRamUsage > 2.8) {
-      newLogs.push({
-        type: "warning",
-        message: "WARNING: High mental load detected",
-        details: "Consider taking breaks to prevent burnout",
-      });
-    }
-
-    if (inputs.coffeeIntake > 4) {
-      newLogs.push({
-        type: "warning",
-        message: `WARNING: High caffeine intake (${inputs.coffeeIntake} cups)`,
-        details: "Excessive coffee may cause anxiety and reduced sleep quality",
-      });
-    } else if (inputs.coffeeIntake > 0) {
-      newLogs.push({
-        type: "info",
-        message: "INFO: Caffeine boost active",
-        details: `System performance enhanced by ~${inputs.coffeeIntake * 10}%`,
-      });
-    }
-
+    // 🛌 SLEEP WARNINGS
     if (inputs.sleepHours < 6) {
       newLogs.push({
         type: "error",
-        message: "CRITICAL: Sleep deprivation detected",
-        details: "Cognitive functions severely impaired - prioritize rest",
+        message: "🔴 CRITICAL: Sleep deprivation detected",
+        details: `${inputs.sleepHours} hrs sleep - Brain fog, mistakes, stress. Get 7-8 hours tonight!`,
       });
-    } else if (inputs.sleepHours < 7) {
+    } else if (inputs.sleepHours >= 6 && inputs.sleepHours < 7) {
       newLogs.push({
         type: "warning",
-        message: "WARNING: Insufficient sleep",
-        details: "Aim for 7-8 hours for optimal performance",
+        message: "🟡 WARNING: Sleep below optimal",
+        details: `${inputs.sleepHours} hrs - Focus is okay but not peak. Aim for 7-8 hours.`,
       });
     } else if (inputs.sleepHours > 9) {
       newLogs.push({
-        type: "info",
-        message: "INFO: Extended sleep duration",
-        details: "Oversleeping may reduce alertness",
-      });
-    }
-
-    if (newStats.bugCount > 35) {
-      newLogs.push({
-        type: "error",
-        message: "CRITICAL: High error rate detected",
-        details: `${newStats.bugCount} logical errors - review and debug required`,
-      });
-    } else if (newStats.bugCount > 20) {
-      newLogs.push({
         type: "warning",
-        message: "WARNING: Elevated error count",
-        details: "Take breaks between study sessions",
+        message: "🟠 INFO: Oversleep detected",
+        details: `${inputs.sleepHours} hrs - May cause laziness and low alertness.`,
       });
-    }
-
-    if (inputs.stressLevel > 7) {
-      newLogs.push({
-        type: "error",
-        message: "CRITICAL: Stress levels dangerously high",
-        details: "Practice relaxation techniques immediately",
-      });
-    } else if (inputs.stressLevel > 5) {
-      newLogs.push({
-        type: "warning",
-        message: "WARNING: Moderate stress detected",
-        details: "Consider mindfulness or short walks",
-      });
-    }
-
-    if (inputs.studyHours > 12) {
-      newLogs.push({
-        type: "error",
-        message: "ERROR: Excessive study duration",
-        details: "Diminishing returns - productivity declining",
-      });
-    } else if (inputs.studyHours > 8) {
-      newLogs.push({
-        type: "warning",
-        message: "WARNING: Long study session",
-        details: "Take regular breaks every 90 minutes",
-      });
-    }
-
-    if (newLogs.length === 0) {
+    } else if (inputs.sleepHours >= 7 && inputs.sleepHours <= 8) {
       newLogs.push({
         type: "info",
-        message: "✅ SYSTEM STATUS: All systems nominal",
-        details: "Optimal performance conditions detected",
+        message: "⭐ OPTIMAL: Perfect sleep duration",
+        details: `${inputs.sleepHours} hrs - Best focus and cognitive performance!`,
+      });
+    }
+
+    // 📚 STUDY WARNINGS
+    if (inputs.studyHours === 0) {
+      newLogs.push({
+        type: "info",
+        message: "💤 IDLE: No study activity",
+        details: "Brain is resting - ready for learning mode.",
+      });
+    } else if (inputs.studyHours > 10) {
+      newLogs.push({
+        type: "error",
+        message: "🔴 DANGER: Excessive study hours",
+        details: `${inputs.studyHours} hrs - Focus drops sharply! Take long breaks.`,
+      });
+    } else if (inputs.studyHours > 8 && inputs.studyHours <= 10) {
+      newLogs.push({
+        type: "error",
+        message: "🔴 BURNOUT RISK: Too much studying",
+        details: `${inputs.studyHours} hrs - Burnout incoming! Brain needs rest.`,
+      });
+    } else if (inputs.studyHours > 6 && inputs.studyHours <= 8) {
+      newLogs.push({
+        type: "warning",
+        message: "🟡 HEAVY LOAD: Long study session",
+        details: `${inputs.studyHours} hrs - Take 15-min breaks every 90 minutes!`,
+      });
+    } else if (inputs.studyHours >= 4 && inputs.studyHours <= 6) {
+      newLogs.push({
+        type: "info",
+        message: "⭐ OPTIMAL: Perfect study duration",
+        details: `${inputs.studyHours} hrs - Brain works best in chunks!`,
+      });
+    } else if (inputs.studyHours >= 2 && inputs.studyHours < 4) {
+      newLogs.push({
+        type: "info",
+        message: "🟢 LEARNING MODE: Light study session",
+        details: `${inputs.studyHours} hrs - Still productive, no stress.`,
+      });
+    }
+
+    // ☕ COFFEE WARNINGS
+    if (inputs.coffeeIntake > 5) {
+      newLogs.push({
+        type: "error",
+        message: "🔴 CRITICAL: Excessive caffeine",
+        details: `${inputs.coffeeIntake} cups - Jittery, more mistakes, poor sleep!`,
+      });
+    } else if (inputs.coffeeIntake > 3 && inputs.coffeeIntake <= 5) {
+      newLogs.push({
+        type: "warning",
+        message: "🔴 WARNING: Too much caffeine",
+        details: `${inputs.coffeeIntake} cups - Anxiety, poor sleep. Reduce to 1-2 cups.`,
+      });
+    } else if (inputs.coffeeIntake === 3) {
+      newLogs.push({
+        type: "info",
+        message: "🟡 INFO: Acceptable caffeine intake",
+        details: "3 cups - Still okay, but consider reducing.",
+      });
+    } else if (inputs.coffeeIntake >= 1 && inputs.coffeeIntake <= 2) {
+      newLogs.push({
+        type: "info",
+        message: "✅ IDEAL: Perfect caffeine level",
+        details: `${inputs.coffeeIntake} cup(s) - Boosts focus without side effects!`,
+      });
+    }
+
+    // 😌 STRESS WARNINGS
+    if (inputs.stressLevel >= 7) {
+      newLogs.push({
+        type: "error",
+        message: "🔴 CRITICAL: High stress detected",
+        details: `Level ${inputs.stressLevel}/10 - Mistakes, panic, bad memory. Practice relaxation!`,
+      });
+    } else if (inputs.stressLevel >= 5 && inputs.stressLevel <= 6) {
+      newLogs.push({
+        type: "warning",
+        message: "🟡 ACCEPTABLE: Moderate stress",
+        details: `Level ${inputs.stressLevel}/10 - Exam pressure detected. Take breaks!`,
+      });
+    } else if (inputs.stressLevel >= 2 && inputs.stressLevel <= 4) {
+      newLogs.push({
+        type: "info",
+        message: "⭐ OPTIMAL: Healthy stress level",
+        details: `Level ${inputs.stressLevel}/10 - Slight pressure, clear mind, motivated!`,
+      });
+    } else if (inputs.stressLevel <= 1) {
+      newLogs.push({
+        type: "warning",
+        message: "😴 WARNING: Too relaxed",
+        details: `Level ${inputs.stressLevel}/10 - Zero stress = laziness. Need some motivation!`,
+      });
+    }
+
+    // 🐛 BUG COUNT WARNINGS
+    if (newStats.bugCount > 40) {
+      newLogs.push({
+        type: "error",
+        message: "🐛 CRITICAL: Extremely high error rate",
+        details: `${newStats.bugCount} bugs - Review everything! Mental state is compromised.`,
+      });
+    } else if (newStats.bugCount > 25) {
+      newLogs.push({
+        type: "warning",
+        message: "🐛 WARNING: High error count",
+        details: `${newStats.bugCount} bugs - Take breaks between sessions.`,
+      });
+    } else if (newStats.bugCount <= 10) {
+      newLogs.push({
+        type: "info",
+        message: "✅ EXCELLENT: Low error rate",
+        details: `${newStats.bugCount} bugs - Great accuracy! Keep it up.`,
+      });
+    }
+
+    // 🧠 RAM USAGE WARNINGS
+    if (newStats.brainRamUsage > 3.5) {
+      newLogs.push({
+        type: "error",
+        message: "🧠 ERROR: Brain RAM overload",
+        details: `${newStats.brainRamUsage} GB / 4 GB - Mental capacity maxed! Stop and rest.`,
+      });
+    } else if (newStats.brainRamUsage > 2.5) {
+      newLogs.push({
+        type: "warning",
+        message: "🧠 WARNING: High mental load",
+        details: `${newStats.brainRamUsage} GB / 4 GB - Take breaks to prevent burnout.`,
+      });
+    } else if (newStats.brainRamUsage < 1.0) {
+      newLogs.push({
+        type: "info",
+        message: "🧠 IDLE: Low brain activity",
+        details: `${newStats.brainRamUsage} GB / 4 GB - Plenty of capacity available.`,
+      });
+    }
+
+    // FOCUS LEVEL SUMMARY
+    if (newStats.focusLevel >= 90) {
+      newLogs.push({
+        type: "info",
+        message: "🎯 PEAK PERFORMANCE: Maximum focus achieved",
+        details: "You're in the zone! Perfect conditions for deep work.",
+      });
+    } else if (newStats.focusLevel < 50) {
+      newLogs.push({
+        type: "error",
+        message: "❌ LOW PERFORMANCE: Focus critically low",
+        details: "Cognitive performance severely impaired - address issues ASAP!",
       });
     }
 
@@ -392,6 +580,30 @@ const Dashboard: React.FC = () => {
                 setInputs={setInputs}
                 onCalculate={calculateStats}
               />
+              
+              {/* Status Labels */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="mt-4 glass-effect rounded-2xl p-4 border border-white/10"
+              >
+                <h4 className="text-sm font-semibold mb-3 text-gray-300">Current Status</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Sleep:</span>
+                    <span className="font-semibold">{getSleepLabel(inputs.sleepHours)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Study:</span>
+                    <span className="font-semibold">{getStudyLabel(inputs.studyHours)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Stress:</span>
+                    <span className="font-semibold">{getStressLabel(inputs.stressLevel)}</span>
+                  </div>
+                </div>
+              </motion.div>
             </div>
 
             {/* Right Column - Stats */}
@@ -439,11 +651,15 @@ const Dashboard: React.FC = () => {
                           System Status
                         </p>
                         <p className="text-lg font-semibold">
-                          {stats.focusLevel > 70
-                            ? "✅ Optimal Performance"
-                            : stats.focusLevel > 50
-                            ? "⚠️ Moderate Performance"
-                            : "❌ Low Performance"}
+                          {stats.focusLevel >= 90
+                            ? "🎯 Peak Performance"
+                            : stats.focusLevel >= 70
+                            ? "✅ Optimal"
+                            : stats.focusLevel >= 50
+                            ? "⚠️ Moderate"
+                            : stats.focusLevel >= 30
+                            ? "🔴 Low"
+                            : "❌ Critical"}
                         </p>
                       </div>
                     </div>
@@ -554,19 +770,21 @@ const Dashboard: React.FC = () => {
                   💡 Performance Tip
                 </h3>
                 <p className="text-gray-400">
-                  {stats.focusLevel < 50 && inputs.sleepHours < 7
-                    ? "Your focus is critically low. Prioritize 7-8 hours of sleep tonight to restore cognitive function."
+                  {stats.focusLevel >= 90
+                    ? "🎯 Excellent! You're operating at peak mental capacity. Your brain is in the zone - make the most of this optimal state!"
+                    : stats.focusLevel < 50 && inputs.sleepHours < 7
+                    ? "😴 Your focus is critically low due to insufficient sleep. Get 7-8 hours tonight to restore cognitive function."
                     : stats.coffeeDependency > 70
-                    ? "High coffee dependency detected. Consider gradually reducing intake to 2-3 cups per day for sustainable energy."
-                    : stats.bugCount > 35
-                    ? "High error count detected. Take a 15-minute break every 90 minutes during study sessions."
+                    ? "☕ High coffee dependency detected. Consider reducing to 2-3 cups per day for sustainable energy."
+                    : stats.bugCount > 40
+                    ? "🐛 High error rate detected. Take a 15-minute break every 90 minutes during work sessions."
                     : inputs.stressLevel > 7
-                    ? "Stress levels are very high. Try deep breathing exercises or a short walk to reduce cortisol levels."
+                    ? "😰 Stress levels are very high. Try deep breathing or a short walk to reduce cortisol."
                     : inputs.studyHours > 10
-                    ? "Extended study session detected. Productivity decreases after 8 hours - consider spreading work across multiple days."
+                    ? "📚 Extended work session detected. Productivity drops after 8 hours - spread work across multiple days."
                     : stats.brainRamUsage > 3.5
-                    ? "Mental capacity nearly maxed out. Take a 20-minute power nap to reset cognitive resources."
-                    : "Excellent! Your brain is operating at optimal levels. Maintain current habits for sustained performance."}
+                    ? "🧠 Mental capacity nearly maxed. Take a 20-minute power nap to reset cognitive resources."
+                    : "✅ Good! Your brain is performing well. Keep maintaining healthy habits."}
                 </p>
               </div>
             </div>
