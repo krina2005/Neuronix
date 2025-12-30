@@ -33,9 +33,9 @@ const Navbar: React.FC = () => {
       className="fixed top-0 left-0 right-0 z-50 glass-effect border-b border-white/10"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16 whitespace-nowrap">
           {/* LEFT SECTION */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 sm:space-x-6">
             {/* Back Button - Only on Dashboard */}
             {location.pathname === "/dashboard" && (
               <motion.button
@@ -54,7 +54,7 @@ const Navbar: React.FC = () => {
                 <Brain className="w-8 h-8 text-cyber-blue group-hover:text-cyber-purple transition-colors" />
                 <div className="absolute inset-0 bg-cyber-blue/20 blur-xl group-hover:bg-cyber-purple/20 transition-colors" />
               </div>
-              <span className="text-xl font-bold text-gradient">
+              <span className="hidden sm:inline text-xl font-bold text-gradient">
                 NeuroNix
               </span>
             </Link>
@@ -66,18 +66,18 @@ const Navbar: React.FC = () => {
               <>
                 <Link
                   to="/dashboard"
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                  className={`flex items-center space-x-2 px-2 py-2 rounded-lg transition-all ${
                     location.pathname === "/dashboard"
                       ? "bg-cyber-blue/20 text-cyber-blue"
                       : "hover:bg-white/5 text-gray-300"
                   }`}
                 >
                   <LayoutDashboard className="w-4 h-4" />
-                  <span>Dashboard</span>
+                  <span className="hidden sm:inline">Dashboard</span>
                 </Link>
 
                 <div className="flex items-center space-x-4">
-                  <span className="text-sm text-gray-400">
+                  <span className="hidden md:inline text-sm text-gray-400">
                     Hi,{" "}
                     <span className="text-cyber-blue font-semibold">
                       {userName}
@@ -89,7 +89,7 @@ const Navbar: React.FC = () => {
                     className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all"
                   >
                     <LogOut className="w-4 h-4" />
-                    <span>Logout</span>
+                    <span className="hidden sm:inline">Logout</span>
                   </button>
                 </div>
               </>
